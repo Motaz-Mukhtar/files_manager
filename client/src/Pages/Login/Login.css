@@ -1,0 +1,50 @@
+/* Login.css */
+.login-container {
+  max-width: 300px;
+  margin: 100px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-container h2 {
+  width: fit-content;
+  margin: 15px 0px;
+}
+
+.login-container form {
+  text-align: left;
+}
+
+.login-container div {
+  display: flex;
+  justify-content: center;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
+.login-btn {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 10px;
+  margin: 15px 0px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background-color: #45a049;
+}
+
+.error-message {
+  color: red;
+  margin: 15px 0px;
+}
