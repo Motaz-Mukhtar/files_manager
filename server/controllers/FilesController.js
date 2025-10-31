@@ -41,6 +41,7 @@ class FilesController {
     delete file.data;
 
     await dbClient.filesCollection.insertOne(file);
+    console.log(file)
     return res.status(201).send(file);
   }
 
@@ -76,6 +77,7 @@ class FilesController {
       isPublic: file.isPublic,
       parentId: file.parentId,
     }));
+    console.log(fileArray)
     return res.status(200).send(fileArray);
   }
 

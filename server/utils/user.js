@@ -21,6 +21,7 @@ class userUtils {
   }
 
   static async getUser(query) {
+    console.log(dbClient.usersCollection)
     const user = await dbClient.usersCollection.findOne(query);
     return user;
   }

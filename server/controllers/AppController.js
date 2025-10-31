@@ -6,7 +6,7 @@ class AppController {
     res.statusCode = 200;
     const dbStatus = {
       redis: redisClient.isAlive(),
-      db: dbClient.isAlive(),
+      db: dbClient.isAlive()
     };
     res.send(dbStatus);
   }
