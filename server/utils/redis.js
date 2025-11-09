@@ -35,15 +35,44 @@ class RedisClient {
     return this.client.connected;
   }
 
+  /**
+   * Get value from redis based on key
+   * @param {string} key 
+   */
   async get(key) {
-    const value = await this.getAsync(key);
+    // await new Promise((resolve, reject) => {
+    //   this.client.get(key, (err, reply) => {
+    //     if (err) reject(err);
+
+    //     else resolve(reply)
+    //   });
+    // });
+    const value = await this.client.get(key);
+
     return value;
   }
 
+  /**
+   * Store key value pair in redis with expiration duration
+   * @param {string} key - key value
+   * @param {string} value - value to be stored
+   * @param {number} duration - duration in seconds 
+   */
   async set(key, value, duration) {
-    this.client.setEx(key, duration, value);
+    // await new Promise((resolve, reject) => {
+    //   this.client.setEx(key, duration, value, (err, reply) => {
+    //     if (err) reject(err);
+
+    //     else resolve(reply);
+    //   });
+    // });
+    await this.client.setEx(key, duration, value);
   }
 
+  /**
+   * Delete a key from redis
+   * @param {string} key 
+   */
   async del(key) {
     this.client.del(key);
   }
