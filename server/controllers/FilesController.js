@@ -57,28 +57,46 @@ class FilesController {
     return res.status(200).send(file);
   }
 
-  static async getIndex(req, res) {
-    const user = await userUtils.getUserBasedOnToken(req);
+/**
+ * Retrieve all user files data based on user id.
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {import('express').NextFunction} next 
+ * @returns 
+ */
+  static async getIndex(req, res, next) {
+    try {
+      console.log('Fetching user files...');
+      const user = await userUtils.getUserBasedOnToken(req);
+      console.log("User fetched")
+      if (!user) return res.status(401).json(unAuthorizedMessage);
+  
+      const parentId = req.query.parentId || 0;
+      const page = req.query.page || 0;
+      const limit = req.query.limit || 20;
+      const skip = page * limit;
+  
+      const files = await dbClient.filesCollection.find({ userId: `${user._id}` })
+        .skip(skip).limit(limit).toArray();
+      const fileArray = files.map((file) => ({
+        id: file._id,
+        userId: file.userId,
+        name: file.name,
+        type: file.type,
+        isPublic: file.isPublic,
+        parentId: file.parentId,
+      }));
+  
+      console.log(fileArray)
+  
+      return res.status(200).json({
+        files: fileArray
+      });
 
-    if (!user) return res.status(401).send(unAuthorizedMessage);
-
-    const parentId = req.query.parentId || 0;
-    const page = req.query.page || 0;
-    const limit = req.query.limit || 20;
-    const skip = page * limit;
-
-    const files = await dbClient.filesCollection.find({ userId: `${user._id}` })
-      .skip(skip).limit(limit).toArray();
-    const fileArray = files.map((file) => ({
-      id: file._id,
-      userId: file.userId,
-      name: file.name,
-      type: file.type,
-      isPublic: file.isPublic,
-      parentId: file.parentId,
-    }));
-    console.log(fileArray)
-    return res.status(200).send(fileArray);
+    } catch (error) {
+      // Pass the error to the global error handler
+      next(error);
+    }
   }
 
   static async putPublish(req, res) {

@@ -9,6 +9,7 @@ const unAuthorizedMessage = { error: 'Unauthorized' };
 class AuthController {
   static async getConnect(req, res) {
     const Authorization = req.header('Authorization').split(' ')[1];
+  
     // Convert from base64 to string (utf-8)
     const decodeAuth = atob(Authorization);
 
