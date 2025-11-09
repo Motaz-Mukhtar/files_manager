@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useHistory } from 'react-router-dom';
 
-const API_URL = 'http://127.0.0.1:5000';
+const API_URL = 'http://localhost:5000';
 
 function FilesList({ props }) {
   const history = useHistory();
@@ -24,19 +24,24 @@ function FilesList({ props }) {
 
   let loadingMessage = 'Loading';
 
-  useEffect(() => {
+  useEffect( () => {
     const headers = {
       'X-Token': userToken,
     }
 
     // Fetch user files from the server based on user token
-    axios.get(`${API_URL}/api/files`, { headers })
+    // axios.get(`${API_URL}/api/files`, { headers })
+    axios.get(`http://localhost:5000/api/files`, { headers })
     .then(response => {
-      setFiles(response.data);
+      console.log("Files")
+      console.log(response);
+      setFiles(response.data.files);
       setLoading(false);
       setError(null);
     })
     .catch(error => {
+      console.log(error);
+      console.log(error.message);
       // if the user not authorized, redirect to the login page.
       if (error.response)
         if (error.response.status === 401) history.push('/login');
