@@ -15,7 +15,6 @@ function FilesList({ props }) {
   const [loading, setLoading] = useState(true);
   const [isUploaded, setIsUploaded] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileContent, setFileContent] = useState('');
   const [error, setError] = useState(null);
   const [refreshFileList, setRefreshFileList] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
@@ -42,6 +41,7 @@ function FilesList({ props }) {
     .catch(error => {
       console.log(error);
       console.log(error.message);
+
       // if the user not authorized, redirect to the login page.
       if (error.response)
         if (error.response.status === 401) history.push('/login');
@@ -145,25 +145,24 @@ function FilesList({ props }) {
     event.preventDefault();
 
     loadingMessage = 'Uploading';
+
     setLoading(true);
     setPopUpVisible(false);
+
     const formData = new FormData();
     formData.append('file', selectedFile);
 
+    // Set the request header
+    // Insert the token, and the content type
     const headers = {
       'X-Token': userToken,
+      "Content-Type": "multipart/form-data"
     };
 
-    const request = {
-      name: selectedFile.name,
-      type: 'file',
-      isPublic: document.querySelector('.checkbox').checked,
-      data: btoa(unescape(encodeURIComponent(fileContent))),
-    };
-
-    axios.post(`${API_URL}/api/files`, request, { headers })
+    // Uploading file.
+    axios.post(`${API_URL}/api/files`, formData, { headers })
     .then(response => {
-      // Show succesful message to the user.
+      // Show success message to the user.
       setLoading(false);
 
       handleResponseMessage('File Uploaded Successfully.');
@@ -182,14 +181,6 @@ function FilesList({ props }) {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFileContent(e.target.result);
-      };
-      reader.readAsText(file);
-    }
   };
 
   const handleRetryButton = () => {
