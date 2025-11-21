@@ -9,9 +9,14 @@
     "js-cookie": "^3.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+<<<<<<< HEAD
     "react-router": "^7.9.6",
     "react-scripts": "5.0.1",
     "tailwindcss": "^4.1.17",
+=======
+    "react-router-dom": "^5.3.4",
+    "react-scripts": "^0.0.0",
+>>>>>>> 09523085a33bb4c02cebe768cda1ed0aaf0f0b65
     "web-vitals": "^2.1.4"
   },
   "scripts": {
