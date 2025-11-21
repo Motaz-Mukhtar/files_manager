@@ -1,6 +1,6 @@
 // SignUp.js
 import React, { useState } from 'react';
-import { useHistory, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router';
 import axios from 'axios';
 import './SignUp.css';
 
@@ -11,7 +11,7 @@ function SignUp() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleSignUp = async () => {
     try {
@@ -24,7 +24,7 @@ function SignUp() {
       const response = await axios.post(`${API_URL}/api/users`, { email, password }, headers);
 
       // Redirect to the Login page after successful SignUp
-      history.push('/login');
+      navigate('/login');
     } catch (error) {
       console.log(error.message)
       setError('Error during signup');
@@ -35,44 +35,57 @@ function SignUp() {
     <div className="signup-container">
       <h2>Sign Up</h2>
       {error && <p className="error-message">{error}</p>}
-      <form>
+      <form className='flex flex-col'>
+      <div className='flex flex-col my-5'>
         <label>
           Email:
+        </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="input-field"
+            className="input-box"
             required
           />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input-field"
-            required
-          />
-        </label>
+      </div>
+      <div className='flex flex-col my-5'>
+          <label>
+            Password:
+          </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-box"
+              required
+            />
+      </div>
+
+
+      <div className='flex flex-col my-5'>
         <label>
           Confirm Password:
+        </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="input-field"
+            className="input-box"
             required
           />
-        </label>
-        <br />
+      </div>
+
+
         <button type="button" onClick={handleSignUp} className="submit-btn">
           Submit
         </button>
-        <br />
-        <Link to='/login'>Already Have an Account ? </Link>
+
+
+        <Link to='/login'>
+          <span className='text-blue-600 underline hover:underline-offset-0'>
+            Already Have an Account ?
+          </span>
+        </Link>
       </form>
     </div>
   );

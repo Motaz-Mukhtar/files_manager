@@ -1,13 +1,12 @@
 import React, { Component, useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import Cookies from 'js-cookie';
-import { useHistory } from 'react-router-dom';
 
 const API_URL = 'http://127.0.0.1:5000';
 
 function FilesList({ props }) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const userToken = Cookies.get('token_id');
   const [files, setFiles] = useState([]);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -39,7 +38,7 @@ function FilesList({ props }) {
     .catch(error => {
       // if the user not authorized, redirect to the login page.
       if (error.response)
-        if (error.response.status === 401) history.push('/login');
+        if (error.response.status === 401) navigate('/login');
       setError(error.message);
       setLoading(false);
       setRefreshFileList(false);
@@ -58,7 +57,7 @@ function FilesList({ props }) {
       // Remove the token from the cookie.
       Cookies.remove('token_id');
       // Redirect the user to the login page.
-      history.push('/login');
+      navigate('/login');
     })
     .catch(error => {
       event.target.disabled = false;
@@ -92,7 +91,7 @@ function FilesList({ props }) {
           setFiles(newList);
           setLoading(false);
           handleResponseMessage('File Deleted Successfully');
-          history.push('/files');
+          navigate('/files');
         }
       }).catch(error => {
         setError(error.message);
@@ -102,7 +101,7 @@ function FilesList({ props }) {
 
     // Show file content
     else if (option === 'Show') {
-      history.push(`/file/${fileId}/data`);
+      navigate(`/file/${fileId}/data`);
     }
 
     // Download file
@@ -203,30 +202,37 @@ function FilesList({ props }) {
 
   return (
     <>
-      <button onClick={handleLogout} className="logout-btn">Logout</button>
-      <div className="file-list">
-        <div className="file-list-header">
-          <h2>Files List</h2>
+      <button onClick={handleLogout} className="float-right py-2 px-3
+        m-5 text-white bg-red-700 border-2 border-red-700
+        cursor-pointer transition
+      ">Logout</button>
+      <div className="max-w-6xl my-[50px] mx-auto bg-white rounded-xl">
+        <div className="bg-white text-[#1dbba5] p-5 rounded-tl-lg rounded-tr-lg border-b-2 border-b-[#1dbba5]">
+          <h2 className='font-bold text-2xl'>Files List</h2>
         </div>
-        {loading && <p className="loading-message">{loadingMessage}...</p>}
-        {error && <p className="error-message">Error: {error} <button onClick={handleRetryButton}>Retry</button></p>}
+        {loading && <p className="text-[#3498db] mt-3">{loadingMessage}...</p>}
+        {error && <p className="font-bold text-red-800 text-lg">Error: {error} <button onClick={handleRetryButton}>Retry</button></p>}
         {!loading && (
           <ul>
-            {files.length === 0 && !error ? <span className="not-found">No Files Uploaded.</span> :
+            {files.length === 0 && !error ? <span className="py-5 text-sm font-bold">No Files Uploaded.</span> :
               files.map(file => ( 
               <li key={file.id} className="file-item">
                 {file.name}
                 <div className="edit-dropdown">
                   {visibleOptionsId === file.id && (
-                    <div className="dropdown-options">
-                      <div onClick={() => handleDropdownOption('Show', file.id)}>Show</div>
-                      <div onClick={() => handleDropdownOption('Download', file.id, file.name)}>Download</div>
-                      <div onClick={() => handleDropdownOption('Delete', file.id)}>Delete</div>
+                    <div className="flex flex-col absolute right-[-70px] top-10
+                                    bg-white border-2 border-gray-400
+                                    rounded-sm shadow-md z-10
+                                    max-md:right-[20px] max-md:top-[50px]">
+                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Show', file.id)}>Show</div>
+                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Download', file.id, file.name)}>Download</div>
+                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Delete', file.id)}>Delete</div>
                     </div>
                   )}
                 </div>
                 <button
-                    className="edit-btn"
+                    className="bg-[#3498db] text-white p-2 border-none
+                               rounded-sm cursor-pointer hover:bg-[#2980b9]"
                     onClick={() => handleEdit(file.id)}
                   >
                     Options
@@ -236,24 +242,40 @@ function FilesList({ props }) {
             ))}
           </ul>
         )}
-        <button className="upload-btn" onClick={() => handlePopUp()}>Upload File</button>
+        <button className="float-right m-6 bg-[#3498db] text-white py-2
+                           border-none rounded-full cursor-pointer px-4
+                           font-bold text-3xl hover:bg-[#287fb9]
+                           transition" onClick={() => handlePopUp()}>+</button>
       </div>
       {isPopUpVisible &&
 
       <>
-        <div className="dark-background" onClick={() => handlePopUp()}></div>
-        <div className="upload-popup">
+        <div className="block bg-[#000000c2] p-20
+                        w-full fixed top-0 left-0 h-full
+                        z-1 backdrop-blur-[5px]" onClick={() => handlePopUp()}></div>
+        <div className="float-right m-5 bg-[#3498db] text-white p-4
+                        border-none rounded-sm cursor-pointer">
           <form>
-            <label htmlFor="file">Select File:</label><br />
+            <label htmlFor="file" className='text-lg font-bold'>
+              Select File:
+            </label>
+            <br />
             <input
               type="file"
               name="file"
               onChange={handleFileChange}
               accept=".doc,.docx,.txt,.html,.js,.css,.py" // Define accepted file types
+              className='my-10 border-2 border-[#1dbba5] p-2'
             /><br />
             <input type="checkbox" name="checkbox" className="checkbox" id="checkbox" />
-            <label id="checkbox" htmlFor="checkbox">Check if you want it to be in public.</label>
-            <input type="submit" value="upload" className="upload-btn" onClick={handleUploadFile} />
+            <label id="checkbox" htmlFor="checkbox" className='
+            ml-2 select-none
+            '>
+              Check if you want it to be in public.
+            </label>
+            <input type="submit" value="upload" onClick={handleUploadFile}
+            className="bg-[#1dbba5]"
+            />
           </form>
         </div>
       </>
@@ -261,7 +283,9 @@ function FilesList({ props }) {
       }
 
       { responseMessage &&
-        <div className="response-message">
+        <div className="w-fit m-auto -translate-y-10
+                        py-3 px-6 border-2 border-[#1dbba5]
+                        rounded-sm">
           <p>{responseMessage}</p>
         </div>
       }

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useHistory } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 const API_URL = 'http://127.0.0.1:5000';
 
 function FileContent() {
-  const history = useHistory();
+  const navigate = useNavigate();
   const userToken = Cookies.get('token_id');
   const [fileData, setFileData] = useState('');
   const [isDataFetched, setDataFetched] = useState(false);
@@ -33,7 +32,7 @@ function FileContent() {
       });
   }, [fileId]);
 
-  const handleArrowClick = () => history.push('/files');
+  const handleArrowClick = () => navigate('/files');
 
   const handleMenuVisible = () => {
     setMenuVisible((isMenuVisible) => !isMenuVisible)
@@ -70,36 +69,55 @@ function FileContent() {
 
   return (
     <>
-      <div className="options-container">
+      <div className="flex justify-between text-start m-10">
         {userToken &&
-          <button className="arrow-button" onClick={() => handleArrowClick()}>{'<-'}</button>
+          <button className="px-15 text-xl font-bold text-white
+                              cursor-pointer bg-[#1dbba5]
+                              border-none rounded-sm
+          " onClick={() => handleArrowClick()}>
+            {'<-'}
+          </button>
         }
         { responseMessage &&
-          <div className='responseMessage'>
+          <div className='self-center py-5 px-10
+                          border-2 border-[#1dbba5]
+                          rounded-sm'>
             <p>{responseMessage}</p>
           </div>
         }
         { userToken &&
-          <div className="menu-container">
-            <div onClick={handleMenuVisible}>
-              <div className="circles"></div>
-              <div className="circles"></div>
-              <div className="circles"></div>
+          <div className="p-5 cursor-pointer">
+            <div onClick={handleMenuVisible} className='flex'>
+              <div className="p-3 rounded-xl bg-[#1dbba5] mx-2 transition"></div>
+              <div className="p-3 rounded-xl bg-[#1dbba5] mx-2 transition"></div>
+              <div className="p-3 rounded-xl bg-[#1dbba5] mx-2 transition"></div>
             </div>
             { isMenuVisible &&
-              <ul className="options">
-                <li onClick={() => handleDropdownOptions('publish')}>Public</li>
-                <li onClick={() => handleDropdownOptions('unpublish')}>Private</li>
+              <ul className="list-none fixed right-10 bg-white
+                             border-2 border-white shadow-xl
+                             z-[2] rounded-sm">
+                <li
+                  className='my-5 p-5 transition'
+                  onClick={() => handleDropdownOptions('publish')}>Public</li>
+                <li
+                  className='my-5 p-5 transition'
+                  onClick={() => handleDropdownOptions('unpublish')}>Private</li>
               </ul>
             }
           </div>
         }
       </div>
 
-      {error && <p className="error-message">Error: {error}</p>}
-      {!isDataFetched && !error && <p className="loading-message">Loading...</p>}
+      {error && <p className="mt-10 text-red-700">Error: {error}</p>}
+      {!isDataFetched && !error && <p className="text-[#3498db] mt-10">Loading...</p>}
       {isDataFetched && (
-        <textarea value={fileData} readOnly></textarea>
+        <textarea value={fileData} readOnly className='
+          fixed left-5 min-w-full max-w-full min-h-[70%]
+          min-h-[70%] outline-none border-none cursor-unset
+          font-bold border-2 border-black
+        '>
+
+        </textarea>
       )}
     </>
   );
