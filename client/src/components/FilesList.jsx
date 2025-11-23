@@ -7,15 +7,13 @@ const API_URL = 'http://localhost:5000';
 
 function FilesList({ props }) {
   const navigate = useNavigate();
-  const userToken = Cookies.get('token_id');
   const [files, setFiles] = useState([]);
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [isPopUpVisible, setPopUpVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const userToken = Cookies.get('token_id');
   const [isUploaded, setIsUploaded] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState(null);
-  const [refreshFileList, setRefreshFileList] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
 
   const [visibleOptionsId, setVisibleOptionsId] = useState(null);
@@ -23,6 +21,13 @@ function FilesList({ props }) {
   let loadingMessage = 'Loading';
 
   useEffect( () => {
+    fetchFiles();
+  }, []);
+
+  const fetchFiles = async () => {
+
+    setLoading(true);
+
     const headers = {
       'X-Token': userToken,
     }
@@ -31,9 +36,7 @@ function FilesList({ props }) {
     // axios.get(`${API_URL}/api/files`, { headers })
     axios.get(`http://localhost:5000/api/files`, { headers })
     .then(response => {
-      console.log("Files")
-      console.log(response);
-      setFiles(response.data.files);
+      setFiles(response.data);
       setLoading(false);
       setError(null);
     })
@@ -46,9 +49,8 @@ function FilesList({ props }) {
         if (error.response.status === 401) navigate('/login');
       setError(error.message);
       setLoading(false);
-      setRefreshFileList(false);
     })
-  }, [refreshFileList])
+  }
 
   const handleLogout = (event) => {
     // Disable Logout button
@@ -91,7 +93,7 @@ function FilesList({ props }) {
 
       axios.delete(`${API_URL}/api/files/${fileId}`, { headers })
       .then(response => {
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 204) {
           const newList = files.filter(ele => ele.id !== fileId);
           setFiles(newList);
           setLoading(false);
@@ -100,8 +102,12 @@ function FilesList({ props }) {
         }
       }).catch(error => {
         setError(error.message);
-        console.log(`File Unable to deleted: ${error.message}`)
-      })
+        console.log(`File Unable to deleted: ${error.message}`);
+        setLoading(false);
+      });
+
+      // Fetch the updated files list
+      fetchFiles();
     }
 
     // Show file content
@@ -150,6 +156,8 @@ function FilesList({ props }) {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    const isPublic = document.getElementById('checkbox').checked;
+    formData.append('isPublic', isPublic);
 
     // Set the request header
     // Insert the token, and the content type
@@ -158,6 +166,7 @@ function FilesList({ props }) {
       "Content-Type": "multipart/form-data"
     };
 
+    console.log(`Uplaoding: ${formData}`);
     // Uploading file.
     axios.post(`${API_URL}/api/files`, formData, { headers })
     .then(response => {
@@ -170,10 +179,11 @@ function FilesList({ props }) {
     }).catch(error => {
       // Show error Message to the user
       handleResponseMessage('Error during file uploading');
+      setLoading(false);
     })
+    // Fetch the updated files list
     setTimeout(() => {
-      setRefreshFileList(true);
-      setRefreshFileList(false);
+      fetchFiles();
     }, 2000)
   }
 
@@ -193,7 +203,7 @@ function FilesList({ props }) {
 
     setTimeout(() => {
       setResponseMessage(null);
-    }, 2500)
+    }, 2500);
   }
 
   return (
@@ -212,17 +222,19 @@ function FilesList({ props }) {
           <ul>
             {files.length === 0 && !error ? <span className="py-5 text-sm font-bold">No Files Uploaded.</span> :
               files.map(file => ( 
-              <li key={file.id} className="file-item">
-                {file.name}
-                <div className="edit-dropdown">
+              <li key={file.id} className="flex justify-between items-center
+                                           border-b-2 border-gray-200
+                                           m-4 p-4 relative">
+                {file.originalName}
+                <div className="absolute right-15 top-5">
                   {visibleOptionsId === file.id && (
                     <div className="flex flex-col absolute right-[-70px] top-10
                                     bg-white border-2 border-gray-400
                                     rounded-sm shadow-md z-10
                                     max-md:right-[20px] max-md:top-[50px]">
-                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Show', file.id)}>Show</div>
-                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Download', file.id, file.name)}>Download</div>
-                      <div className='p-4 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Delete', file.id)}>Delete</div>
+                      <div className='p-4 border-b-2 border-gray-200 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Show', file.id)}>Show</div>
+                      <div className='p-4 border-b-2 border-gray-200 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Download', file.id, file.name)}>Download</div>
+                      <div className='p-4 border-b-2 border-gray-200 cursor-pointer hover:bg-[#f0f0f0]' onClick={() => handleDropdownOption('Delete', file.id)}>Delete</div>
                     </div>
                   )}
                 </div>
@@ -248,10 +260,12 @@ function FilesList({ props }) {
       <>
         <div className="block bg-[#000000c2] p-20
                         w-full fixed top-0 left-0 h-full
-                        z-1 backdrop-blur-[5px]" onClick={() => handlePopUp()}></div>
-        <div className="float-right m-5 bg-[#3498db] text-white p-4
-                        border-none rounded-sm cursor-pointer">
-          <form>
+                        z-1  backdrop-blur-[5px]" onClick={() => handlePopUp()}></div>
+
+        <div className=" w-fit m-5 bg-[#3498db] text-white p-4
+                        border-none rounded-sm 
+                        z-1 relative mx-auto">
+          <form className='flex flex-col'>
             <label htmlFor="file" className='text-lg font-bold'>
               Select File:
             </label>
@@ -261,16 +275,20 @@ function FilesList({ props }) {
               name="file"
               onChange={handleFileChange}
               accept=".doc,.docx,.txt,.html,.js,.css,.py" // Define accepted file types
-              className='my-10 border-2 border-[#1dbba5] p-2'
+              className='my-10 border-2 border-[#1dbba5] p-2 cursor-pointer'
             /><br />
-            <input type="checkbox" name="checkbox" className="checkbox" id="checkbox" />
-            <label id="checkbox" htmlFor="checkbox" className='
-            ml-2 select-none
-            '>
-              Check if you want it to be in public.
-            </label>
+            <div>
+              <input type="checkbox" name="checkbox" className="checkbox" id="checkbox" />
+              <label id="checkbox" htmlFor="checkbox" className='
+              ml-2 select-none
+              '>
+                Check if you want it to be in public.
+              </label>
+            </div>
             <input type="submit" value="upload" onClick={handleUploadFile}
-            className="bg-[#1dbba5]"
+            className="bg-[#1dbba5] p-2
+                       rounded-sm cursor-pointer
+                       w-fit my-5 hover:bg-[#17a295] transition"
             />
           </form>
         </div>
