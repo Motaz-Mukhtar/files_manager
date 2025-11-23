@@ -22,7 +22,7 @@ class AuthController {
 
     const token = v4();
     const key = `auth_${token}`;
-
+    console.log(`Storing the key ${key}`);
     await redisClient.set(key, user._id.toString(), 24 * 3600);
 
     return res.status(200).send({ token });

@@ -6,43 +6,34 @@ import userUtils from '../utils/user';
 import fileUtils from '../utils/file';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import FileService from '../services/FilesService';
 
 const unAuthorizedMessage = { error: 'Unauthorized' };
 const notFoundMessage = { error: 'Not Found' };
 const FOLDER_PATH = process.env.FOLDER_PATH || 'tmp';
 
 class FilesController {
-  static async postUpload(req, res) {
-    const user = await userUtils.getUserBasedOnToken(req);
-    const file = await fileUtils.validateFileData(req);
 
-    if (!user) return res.status(401).send(unAuthorizedMessage);
-
-    if (file.error) return res.status(400).send({ error: file.error });
-
-    file.userId = user._id.toString();
-
-    const fileName = v4();
-
-    const filePath = `${FOLDER_PATH}/${fileName}`;
-    const buffer = Buffer.from(decodeURIComponent(escape(file.data)), 'base64');
+  /**
+   * File upload function
+   * @param {Reqest} req 
+   * @param {Response} res 
+   * @param {import('express').NextFunction} next 
+   * @returns
+   */
+  static async postUpload(req, res, next) {
     try {
-      if (file.type === 'folder')
-        await promises.mkdir(filePath, { recursive: true });
-      else {
-        await promises.writeFile(filePath, buffer, { encoding: 'utf8' });
-      }
-    } catch (error) {
-      return res.status(400).send({ error });
+      const result = await FileService.postUpload(req.body, req.file, req);
+
+      return res.status(201).json({
+        statusCode: 201,
+        data: result
+      });
+
+    } catch(error) {
+      // Pass the error to the global error handler
+      next(error);
     }
-    file.localPath = filePath;
-
-    // Insert the file without the file content.
-    delete file.data;
-
-    await dbClient.filesCollection.insertOne(file);
-    console.log(file)
-    return res.status(201).send(file);
   }
 
   // Retrieve file based on id.
@@ -72,7 +63,7 @@ class FilesController {
     const fileArray = files.map((file) => ({
       id: file._id,
       userId: file.userId,
-      name: file.name,
+      originalName: file.originalName,
       type: file.type,
       isPublic: file.isPublic,
       parentId: file.parentId,
@@ -137,44 +128,42 @@ class FilesController {
     return res.status(200).send(data);
   }
 
-  static async deleteFile(req, res) {
-    const fileId = req.params.id;
-    const token = req.header('X-Token');
-    const userId = await redisClient.get(`auth_${token}`);
-    const file = await dbClient.filesCollection.findOne({ _id: ObjectId(fileId) });
+  /**
+   * Handle file deletion.
+   * @param {Reqest} req 
+   * @param {Response} res 
+   * @param {import('express').NextFunction} next 
+   * @returns 
+   */
+  static async deleteFile(req, res, next) {
+    try {
+      const result = await FileService.deleteFile(req.params, req);
 
-    if (!userId || userId !== file.userId) return res.status(401).send(unAuthorizedMessage);
-
-    if (!file) return res.status(404).send(notFoundMessage);
-
-    unlink(file.localPath, async (error) => {
-      if (error) {
-        console.log(error, error.message)
-        return res.status(500).send({ error: `Failed to delete file: ${error.message}`});
-      }
-
-      await dbClient.filesCollection.deleteOne({ _id: ObjectId(fileId) });
-
-      return res.status(200).send({});
-    })
+      return res.status(204).json({
+        statusCode: 204,
+        data: result
+      });
+    } catch(error) {
+      next(error);
+    }
   }
 
-  static async downloadFile(req, res) {
-    const fileId = req.params.fileId;
-    const file = await dbClient.filesCollection.findOne({ _id: ObjectId(fileId) });
 
-    if (!file || file.isPublic === false) return res.status(404).send(notFoundMessage);
-    console.log(file)
-    const mimeType = mime.contentType(file.name);
+  /**
+   * Handle downloading a file.
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {import('express').NextFunction} next 
+   */
+  static async downloadFile(req, res, next) {
+    try {
 
-    res.setHeader('Content-Type', mimeType);
+      await FileService.downloadFile(req, res);
 
-    res.download(file.localPath, (error) => {
-      if (error) {
-        return res.status(500).send({ error: 'Failed to download file '});
-      }
-    })
-
+    } catch(error) {
+      // Pass the error to the global error handler
+      next(error);
+    }
   }
 }
 

@@ -5,6 +5,8 @@ import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
 
+import multerStorage from '../config/multerConfig';
+
 const router = express.Router();
 
 // Return the status of mongodb server and redis server.
@@ -40,8 +42,11 @@ router.get('/api/users/me', (req, res) => {
 });
 
 // Upload file.
-router.post('/api/files', (req, res) => {
-  FilesController.postUpload(req, res);
+router.post('/api/files',
+  multerStorage.upload.single('file'),
+  multerStorage.validteFileUpload,
+  (req, res, next) => {
+  FilesController.postUpload(req, res, next);
 });
 
 // Retrieve file based on id.
@@ -70,13 +75,13 @@ router.get('/api/files/:id/data', (req, res) => {
 });
 
 // Delete file based on id.
-router.delete('/api/files/:id', (req, res) => {
-  FilesController.deleteFile(req, res);
+router.delete('/api/files/:id', (req, res, next) => {
+  FilesController.deleteFile(req, res, next);
 });
 
 // Download file based on id.
-router.get('/download/:fileId', (req, res) => {
-  FilesController.downloadFile(req, res);
+router.get('/download/:fileId', (req, res, next) => {
+  FilesController.downloadFile(req, res, next);
 })
 
 export default router;

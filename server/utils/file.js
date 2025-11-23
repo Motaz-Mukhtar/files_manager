@@ -4,7 +4,7 @@ import dbClient from './db';
 class fileUtils {
   static async validateFileData(req) {
     let file;
-
+    console.log(req.file);
     const {
       name, type, isPublic = false, data,
     } = req.body;

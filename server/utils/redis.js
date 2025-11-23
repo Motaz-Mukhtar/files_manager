@@ -1,6 +1,7 @@
 import * as redis from 'redis';
 import { config } from 'dotenv';
-import { promisify } from 'util';
+import AppError from './AppError';
+
 
 config();
 
@@ -20,8 +21,6 @@ class RedisClient {
     });
     this.client.connect();
 
-    this.getAsync = promisify(this.client.get).bind(this.client);
-    
     this.client.connected = true;
     
     this.client.on('error', (err) => {
@@ -36,16 +35,36 @@ class RedisClient {
   }
 
   async get(key) {
-    const value = await this.getAsync(key);
-    return value;
+    try {
+      const value = await this.client.get(key);
+
+      return value;
+    } catch (error) {
+      console.log(error.message);
+      throw new AppError(`Redis get error: ${error.message}`);
+    }
   }
 
   async set(key, value, duration) {
-    this.client.setEx(key, duration, value);
+  try {
+    const result = await this.client.setEx(key, duration, value);
+
+    return result;
+
+  } catch(error) {
+    console.log(`error setting key: ${error.message}`);
+    throw new AppError(`Redis set error: ${error.message}`);
+  }
   }
 
   async del(key) {
-    this.client.del(key);
+    try {
+      const value = await this.client.del(key);
+
+      return value;
+    } catch(error) {
+      throw new AppError(`Redis del error: ${error.message}`);
+    }
   }
 }
 

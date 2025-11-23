@@ -5,10 +5,11 @@ import dbClient from './db';
 class userUtils {
   static async getUserBasedOnToken(request) {
     const Xtoken = request.header('X-Token');
-
+    console.log(`user token: ${Xtoken}`);
     if (!Xtoken) return undefined;
 
     const key = `auth_${Xtoken}`;
+
     const userId = await redisClient.get(key);
 
     if (!userId) return undefined;
@@ -21,7 +22,6 @@ class userUtils {
   }
 
   static async getUser(query) {
-    console.log(dbClient.usersCollection)
     const user = await dbClient.usersCollection.findOne(query);
     return user;
   }

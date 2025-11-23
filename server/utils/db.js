@@ -12,7 +12,7 @@ const DB_URL = process.env.DB_URL || url;
 class DBClient {
   constructor() {
     this.connected = false;
-	  console.log(DB_URL)
+
     MongoClient.connect(DB_URL, { useUnifiedTopology: true }, (err, client) => {
 
       if (!err) {
