@@ -1,6 +1,6 @@
 import AppError from '../utils/AppError';
 import redisClient from '../utils/redis';
-
+import userUtils from '../utils/user';
 
 /**
  * 
@@ -8,9 +8,15 @@ import redisClient from '../utils/redis';
  * @param {Response} res
  * @param {import('express').NextFunction} next
  */
-function verifyToken(req, res, next) {
-    try {
+async function verifyToken(req, res, next) {
 
+    try {
+        const user = await userUtils.getUserBasedOnToken(req);
+
+        if (!user) throw new AppError("Unauthorized", 401);
+
+        req.user = user;
+        next();
     } catch (error) {
         // Pass error to the next middleware
         next(error);

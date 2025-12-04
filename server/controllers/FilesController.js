@@ -7,6 +7,7 @@ import fileUtils from '../utils/file';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import FileService from '../services/FilesService';
+import FilesService from '../services/FilesService';
 
 const unAuthorizedMessage = { error: 'Unauthorized' };
 const notFoundMessage = { error: 'Not Found' };
@@ -48,28 +49,26 @@ class FilesController {
     return res.status(200).send(file);
   }
 
-  static async getIndex(req, res) {
-    const user = await userUtils.getUserBasedOnToken(req);
+  /**
+   * Get files root
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {import('express').NextFunction} next 
+   * @returns 
+   */
+  static async getIndex(req, res, next) {
+    try {
+      // Pass the request to the file service.
+      const result = await FilesService.getIndex(req);
 
-    if (!user) return res.status(401).send(unAuthorizedMessage);
-
-    const parentId = req.query.parentId || 0;
-    const page = req.query.page || 0;
-    const limit = req.query.limit || 20;
-    const skip = page * limit;
-
-    const files = await dbClient.filesCollection.find({ userId: `${user._id}` })
-      .skip(skip).limit(limit).toArray();
-    const fileArray = files.map((file) => ({
-      id: file._id,
-      userId: file.userId,
-      originalName: file.originalName,
-      type: file.type,
-      isPublic: file.isPublic,
-      parentId: file.parentId,
-    }));
-    console.log(fileArray)
-    return res.status(200).send(fileArray);
+      return res.status(200).json({
+        statusCode: 200,
+        ...result
+      });
+    } catch(error) {
+      // Pass the error to the global error handler
+      next(error);
+    }
   }
 
   static async putPublish(req, res) {

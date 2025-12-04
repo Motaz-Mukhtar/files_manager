@@ -3,7 +3,7 @@
  * http response messages.
  */
 class AppError extends Error {
-    constructor(message, statusCode, customMessages) {
+    constructor(message, statusCode, customMessages={}) {
         // Pass the message to the built-in Error class
         super(message);
 
@@ -14,7 +14,7 @@ class AppError extends Error {
         this.isOperational = true;
 
         // This for any custom messages.
-        this.customMessages = customMessages | {};
+        this.customMessages = customMessages;
 
         // Capture the stack race, excluding this constructor
         Error.captureStackTrace(this, this.constructor);

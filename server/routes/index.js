@@ -5,13 +5,10 @@ import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
 
-<<<<<<< Updated upstream
+
 import multerStorage from '../config/multerConfig';
 
-const router = express.Router();
-=======
 const router = Router();
->>>>>>> Stashed changes
 
 // Return the status of mongodb server and redis server.
 router.get('/api/status', (req, res) => {

@@ -5,6 +5,7 @@ import AppRouter from './routes/AppRoutes';
 import UsersRouter from './routes/UsersRoutes';
 import AuthRouter from './routes/AuthRoutes';
 import FilesRouter from './routes/FilesRoutes';
+import FoldersRouter from './routes/FolderRoutes';
 
 
 const app = express();
@@ -17,6 +18,7 @@ app.use('/api/v1', AppRouter);
 app.use('/api/v1', UsersRouter);
 app.use('/api/v1', AuthRouter);
 app.use('/api/v1', FilesRouter);
+app.use('/api/v1', FoldersRouter);
 
 app.use((error, req, res, next) => {
   // Default to 500 internal server error.
@@ -34,6 +36,7 @@ app.use((error, req, res, next) => {
 
   // Check if it' operational (one of ours)
   if (error.isOperational) {
+    console.log(error);
     return res.status(error.statusCode).json({
       message: error.message,
       statusCode: error.statusCode,
@@ -42,7 +45,8 @@ app.use((error, req, res, next) => {
   } else {
     return res.status(500).json({
       message: "Internal Server Error",
-      statusCode: 500
+      statusCode: 500,
+      error: error.message
     });
   }
 

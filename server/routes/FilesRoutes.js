@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import FilesController from '../controllers/FilesController';
+import verifyToken from '../middleware/verifyToken';
 
 const router = Router();
 
